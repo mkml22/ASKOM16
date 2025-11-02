@@ -10,6 +10,42 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 
   <style>
+    /* Mode normal tetap seperti biasa */
+.product-grid {
+  transition: all 0.5s ease;
+  position: relative;
+}
+
+/* Ukuran default kartu produk */
+.product-card {
+  transition: transform 0.8s ease, opacity 0.5s ease;
+  width: 100%;
+  max-width: 300px; /* batas lebar maksimum kartu */
+  margin: auto;
+}
+
+/* Saat mode animasi ON: semua produk ditumpuk di tengah */
+.product-grid.animation-mode {
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  height: auto;
+  min-height: 420px; /* area tampilan animasi */
+}
+
+.product-grid.animation-mode .product-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+  border-radius: 16px;
+  background: #fff;
+  padding: 15px;
+}
+
     * {
       box-sizing: border-box;
       margin: 0;
@@ -1640,7 +1676,13 @@ document.addEventListener('DOMContentLoaded', function () {
 <footer>
     <p>&copy; 2025 Artha Sejahtera Komputindo. All rights reserved.</p>
   </footer>
-  
+  <!-- Tombol ganti mode -->
+<div style="text-align:center; margin:20px;">
+  <button id="toggleModeBtn" 
+          style="padding:10px 20px; background:#007bff; color:#fff; border:none; border-radius:8px; cursor:pointer;">
+    Mode Animasi: OFF
+  </button>
+
 <script>
   const searchInput = document.getElementById("searchInput");
   const categoryFilter = document.getElementById("categoryFilter");
@@ -1728,6 +1770,91 @@ document.addEventListener('DOMContentLoaded', function () {
   // tampilkan awal
   showProducts();
 </script>
+<script>
+window.addEventListener("DOMContentLoaded", () => {
+  const cards = document.querySelectorAll(".product-card");
+  const productGrid = document.querySelector(".product-grid");
+  const toggleBtn = document.getElementById("toggleModeBtn");
+  
+  let animationMode = false;
+  let currentIndex = 0;
+  let slideInterval;
+  let isSliding = false;
 
+  // Awal tampil semua
+  cards.forEach(card => {
+    card.style.display = "block";
+    card.style.opacity = 1;
+    card.style.position = "static";
+  });
+
+  function startAnimationMode() {
+    animationMode = true;
+    toggleBtn.textContent = "Mode Animasi: ON";
+    productGrid.classList.add("animation-mode");
+    productGrid.style.position = "relative";
+
+    // Sembunyikan semua kecuali pertama
+    cards.forEach((card, i) => {
+      card.style.transition = "transform 0.8s ease, opacity 0.5s ease";
+      card.style.display = i === 0 ? "block" : "none";
+      card.style.opacity = i === 0 ? 1 : 0;
+    });
+    currentIndex = 0;
+
+    slideInterval = setInterval(showNextCard, 3500);
+  }
+
+  function showNextCard() {
+    if (isSliding) return;
+    isSliding = true;
+
+    const currentCard = cards[currentIndex];
+    const nextIndex = (currentIndex + 1) % cards.length;
+    const nextCard = cards[nextIndex];
+
+    nextCard.style.display = "block";
+    nextCard.style.transform = "translate(100%, -50%)";
+    nextCard.style.opacity = 1;
+
+    setTimeout(() => {
+      currentCard.style.transform = "translate(-150%, -50%)";
+      nextCard.style.transform = "translate(-50%, -50%)";
+
+      setTimeout(() => {
+        currentCard.style.display = "none";
+        currentCard.style.transform = "translate(-50%, -50%)";
+        currentCard.style.opacity = 0;
+        currentIndex = nextIndex;
+        isSliding = false;
+      }, 800);
+    }, 50);
+  }
+
+  function stopAnimationMode() {
+    animationMode = false;
+    toggleBtn.textContent = "Mode Animasi: OFF";
+    clearInterval(slideInterval);
+    productGrid.classList.remove("animation-mode");
+
+    // Kembalikan ke tampilan grid
+    cards.forEach(card => {
+      card.style.display = "block";
+      card.style.opacity = 1;
+      card.style.position = "static";
+      card.style.transform = "none";
+    });
+  }
+
+  toggleBtn.addEventListener("click", () => {
+    if (animationMode) {
+      stopAnimationMode();
+    } else {
+      startAnimationMode();
+    }
+  });
+});
+</script>
+</div>
 </body>
 </html>
